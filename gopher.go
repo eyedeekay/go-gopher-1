@@ -778,29 +778,63 @@ func (c *conn) readRequest(ctx context.Context) (w *response, err error) {
 //
 // A trivial example server is:
 //
-//    package main
+//	package main
 //
-//    import (
-//        "io"
-//        "log"
+//	import (
+//	    "io"
+//	    "log"
 //
-//        "git.mills.io/prologic/go-gopher"
-//    )
+//	    "git.mills.io/prologic/go-gopher"
+//	)
 //
-//    // hello world, the gopher server
-//    func HelloServer(w gopher.ResponseWriter, req *gopher.Request) {
-//        w.WriteInfo("hello, world!")
-//    }
+//	// hello world, the gopher server
+//	func HelloServer(w gopher.ResponseWriter, req *gopher.Request) {
+//	    w.WriteInfo("hello, world!")
+//	}
 //
-//    func main() {
-//        gopher.HandleFunc("/hello", HelloServer)
-//        log.Fatal(gopher.ListenAndServe(":7000", nil))
-//    }
+//	func main() {
+//	    gopher.HandleFunc("/hello", HelloServer)
+//	    log.Fatal(gopher.ListenAndServe(":7000", nil))
+//	}
 //
 // ListenAndServe always returns a non-nil error.
 func ListenAndServe(addr string, handler Handler) error {
 	server := &Server{Addr: addr, Handler: handler}
 	return server.ListenAndServe()
+}
+
+// Serve creates a Server and then calls Serve with a listener
+// and a handler to handle requests on incoming connections.
+//
+// A trivial example server is:
+//
+//	package main
+//
+//	import (
+//	    "io"
+//	    "log"
+//
+//	    "git.mills.io/prologic/go-gopher"
+//	)
+//
+//	// hello world, the gopher server
+//	func HelloServer(w gopher.ResponseWriter, req *gopher.Request) {
+//	    w.WriteInfo("hello, world!")
+//	}
+//
+//	func main() {
+//		listener, err := net.Listen("tcp", ":7000")
+//		if err != nil {
+//			panic(err)
+//		}
+//	    gopher.HandleFunc("/hello", HelloServer)
+//	    log.Fatal(gopher.Serve(listener, nil))
+//	}
+//
+// Serve always returns a non-nil error.
+func Serve(listener net.Listener, handler Handler) error {
+	server := &Server{Addr: listener.Addr().String(), Handler: handler}
+	return server.Serve(listener)
 }
 
 // ListenAndServeTLS acts identically to ListenAndServe, except that it
@@ -812,22 +846,22 @@ func ListenAndServe(addr string, handler Handler) error {
 //
 // A trivial example server is:
 //
-//    import (
-//        "log"
+//	import (
+//	    "log"
 //
-//        "git.mills.io/prologic/go-gopher",
-//    )
+//	    "git.mills.io/prologic/go-gopher",
+//	)
 //
-//    func HelloServer(w gopher.ResponseWriter, req *gopher.Request) {
-//        w.WriteInfo("hello, world!")
-//    }
+//	func HelloServer(w gopher.ResponseWriter, req *gopher.Request) {
+//	    w.WriteInfo("hello, world!")
+//	}
 //
-//    func main() {
-//        gopher.HandleFunc("/", handler)
-//        log.Printf("About to listen on 73. Go to gophers://127.0.0.1:73/")
-//        err := gopher.ListenAndServeTLS(":73", "cert.pem", "key.pem", nil)
-//        log.Fatal(err)
-//    }
+//	func main() {
+//	    gopher.HandleFunc("/", handler)
+//	    log.Printf("About to listen on 73. Go to gophers://127.0.0.1:73/")
+//	    err := gopher.ListenAndServeTLS(":73", "cert.pem", "key.pem", nil)
+//	    log.Fatal(err)
+//	}
 //
 // One can use generate_cert.go in crypto/tls to generate cert.pem and key.pem.
 //
@@ -922,7 +956,7 @@ func (mux *ServeMux) match(selector string) (h Handler, pattern string) {
 // Handler also returns the registered pattern that matches the request.
 //
 // If there is no registered handler that applies to the request,
-// Handler returns a ``resource not found'' handler and an empty pattern.
+// Handler returns a “resource not found” handler and an empty pattern.
 func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) {
 	return mux.handler(r.Selector)
 }
@@ -1142,7 +1176,7 @@ func NotFound(w ResponseWriter, r *Request) {
 }
 
 // NotFoundHandler returns a simple request handler
-// that replies to each request with a ``resource page not found'' reply.
+// that replies to each request with a “resource page not found” reply.
 func NotFoundHandler() Handler { return HandlerFunc(NotFound) }
 
 type fileHandler struct {
@@ -1155,7 +1189,7 @@ type fileHandler struct {
 // To use the operating system's file system implementation,
 // use gopher.Dir:
 //
-//     gopher.Handle("/", gopher.FileServer(gopher.Dir("/tmp")))
+//	gopher.Handle("/", gopher.FileServer(gopher.Dir("/tmp")))
 func FileServer(root FileSystem) Handler {
 	return &fileHandler{root}
 }
